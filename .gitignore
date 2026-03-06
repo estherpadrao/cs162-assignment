@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+venv/
+.venv/
+backend/todo.db
+
+# Node
+frontend/node_modules/
+frontend/build/
+
+# OS
+.DS_Store

@@ -9,7 +9,7 @@ export default function HomePage() {
     <Container className="mt-5">
       <Row className="justify-content-center text-center">
         <Col md={8}>
-          <h1 className="display-4 mb-3" style={{ color: '#6f42c1' }}>Hierarchical Todo Lists</h1>
+          <h1 className="display-4 mb-3 fw-bold" style={{ color: '#4a1d96' }}>Hierarchical Todo Lists</h1>
           <p className="lead text-muted mb-4">
             Organise your work across multiple lists with nested tasks, kanban-style
             columns and per-user privacy.
@@ -26,10 +26,20 @@ export default function HomePage() {
             </Button>
           ) : (
             <div className="d-flex gap-3 justify-content-center">
-              <Button as={Link} to="/login" variant="primary" size="lg">
+              <Button
+                as={Link}
+                to="/login"
+                size="lg"
+                style={{ backgroundColor: '#6f42c1', borderColor: '#6f42c1', color: 'white' }}
+              >
                 Log In
               </Button>
-              <Button as={Link} to="/register" variant="outline-primary" size="lg">
+              <Button
+                as={Link}
+                to="/register"
+                size="lg"
+                style={{ backgroundColor: 'transparent', borderColor: '#8b5cf6', color: '#6f42c1' }}
+              >
                 Register
               </Button>
             </div>

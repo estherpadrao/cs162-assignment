@@ -6,7 +6,7 @@ echo "=== Installing Python dependencies ==="
 cd "$(dirname "$0")/backend"
 pip3 install -r ../requirements.txt
 
-echo "=== Starting Flask backend on http://localhost:5000 ==="
+echo "=== Starting Flask backend on http://localhost:5001 ==="
 python3 run.py &
 FLASK_PID=$!
 
@@ -20,7 +20,7 @@ REACT_PID=$!
 
 echo ""
 echo "Both servers are running."
-echo "  Backend:  http://localhost:5000"
+echo "  Backend:  http://localhost:5001"
 echo "  Frontend: http://localhost:3000"
 echo ""
 echo "Press Ctrl+C to stop."

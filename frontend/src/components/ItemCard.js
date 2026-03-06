@@ -3,7 +3,7 @@ import { Card, Badge, Button, ButtonGroup } from 'react-bootstrap';
 import EditItemModal from './EditItemModal';
 
 /**
- * Renders a single item (or subitem) card.
+ * Renders a single item (or sub-item) card.
  *
  * Props:
  *   item          – the item object (with .subitems[])
@@ -12,8 +12,8 @@ import EditItemModal from './EditItemModal';
  *   onUpdate      – async (itemId, data, listId) => result
  *   onDelete      – async (itemId, listId) => void
  *   onMoveItem    – async (itemId, direction, listId) => void  (rank swap)
- *   isFirst       – boolean (no up arrow)
- *   isLast        – boolean (no down arrow)
+ *   isFirst       – boolean
+ *   isLast        – boolean
  */
 export default function ItemCard({
   item,
@@ -29,9 +29,7 @@ export default function ItemCard({
   const [collapsed, setCollapsed] = useState(item.is_collapsed || false);
 
   const hasSubitems = item.subitems && item.subitems.length > 0;
-
-  const columnLabel = { todo: 'To Do', doing: 'Doing', done: 'Done' };
-  const columnVariant = { todo: 'secondary', doing: 'warning', done: 'success' };
+  const isDone = item.column === 'done';
 
   const handleToggleCollapse = async () => {
     const next = !collapsed;
@@ -48,7 +46,6 @@ export default function ItemCard({
     await onDelete(item.id, item.list_id);
   };
 
-  // Card background lightens with depth so nested items are visually distinct
   const bgStyle = depth > 0 ? { backgroundColor: '#f8f9fa' } : {};
   const borderStyle = depth > 0 ? { borderLeft: `3px solid #dee2e6` } : {};
 
@@ -67,7 +64,7 @@ export default function ItemCard({
                 variant="link"
                 size="sm"
                 className="p-0 text-muted"
-                title={collapsed ? 'Expand subtasks' : 'Collapse subtasks'}
+                title={collapsed ? 'Expand sub-items' : 'Collapse sub-items'}
                 onClick={handleToggleCollapse}
                 style={{ lineHeight: 1 }}
               >
@@ -76,7 +73,9 @@ export default function ItemCard({
             )}
 
             <div className="flex-grow-1">
-              <strong>{item.title}</strong>
+              <strong style={isDone ? { textDecoration: 'line-through', opacity: 0.6 } : {}}>
+                {item.title}
+              </strong>
               {item.due_date && (
                 <span className="ms-2 text-muted" style={{ fontSize: '0.8rem' }}>
                   📅 {item.due_date}
@@ -91,26 +90,6 @@ export default function ItemCard({
 
             {/* Action buttons */}
             <div className="d-flex gap-1 flex-shrink-0">
-              {/* Up / Down rank within column */}
-              <ButtonGroup size="sm">
-                <Button
-                  variant="outline-secondary"
-                  disabled={isFirst}
-                  onClick={() => onMoveItem(item.id, 'up', item.list_id)}
-                  title="Move up"
-                >
-                  ▲
-                </Button>
-                <Button
-                  variant="outline-secondary"
-                  disabled={isLast}
-                  onClick={() => onMoveItem(item.id, 'down', item.list_id)}
-                  title="Move down"
-                >
-                  ▼
-                </Button>
-              </ButtonGroup>
-
               {/* Column movement (top-level items only) */}
               {depth === 0 && (
                 <ButtonGroup size="sm">
@@ -140,7 +119,7 @@ export default function ItemCard({
               )}
 
               <Button
-                variant="outline-primary"
+                variant="outline-success"
                 size="sm"
                 onClick={() => setShowEdit(true)}
                 title="Edit"
@@ -158,7 +137,7 @@ export default function ItemCard({
             </div>
           </div>
 
-          {/* ── Subitems ── */}
+          {/* ── Sub-items ── */}
           {hasSubitems && !collapsed && (
             <div className="mt-2 ps-3">
               {item.subitems.map((sub, idx) => (

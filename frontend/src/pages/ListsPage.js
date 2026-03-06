@@ -178,7 +178,7 @@ export default function ListsPage() {
 
       {/* ── Add new list ─────────────────────────────────────────────────── */}
       <div className="mt-3 mb-5">
-        <Button variant="outline-primary" onClick={handleAddList}>
+        <Button variant="outline-success" onClick={handleAddList}>
           + Add New List
         </Button>
       </div>

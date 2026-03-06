@@ -44,7 +44,7 @@ export default function EditItemModal({ item, lists, onSave, onClose }) {
   return (
     <Modal show onHide={onClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Edit Task</Modal.Title>
+        <Modal.Title>Edit Item</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {error && <Alert variant="danger">{error}</Alert>}
@@ -99,7 +99,7 @@ export default function EditItemModal({ item, lists, onSave, onClose }) {
             <Button variant="secondary" type="button" onClick={onClose}>
               Cancel
             </Button>
-            <Button variant="primary" type="submit" disabled={saving}>
+            <Button variant="success" type="submit" disabled={saving}>
               {saving ? 'Saving…' : 'Save'}
             </Button>
           </div>

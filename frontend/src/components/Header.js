@@ -13,10 +13,10 @@ export default function Header() {
   };
 
   return (
-    <Navbar bg="dark" variant="dark" expand="md" sticky="top">
+    <Navbar expand="md" sticky="top" style={{ backgroundColor: '#6f42c1' }} variant="dark">
       <Container>
         <Navbar.Brand as={Link} to="/">
-          ☑ TodoApp
+          Personal List
         </Navbar.Brand>
         <Navbar.Toggle />
         <Navbar.Collapse>

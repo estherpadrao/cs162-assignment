@@ -1,0 +1,24 @@
+/* ── Purple palette ── */
+
+body {
+  background-color: #faf7ff;
+}
+
+.card-header {
+  background-color: #f0eaff;
+  border-bottom-color: #d4bbf7;
+}
+
+.card {
+  border-color: #d4bbf7;
+}
+
+/* Column background tint */
+.column-bg {
+  background-color: #f0eaff !important;
+}
+
+/* Badge colours for kanban columns */
+.badge.bg-secondary {
+  background-color: #9b72cf !important;
+}

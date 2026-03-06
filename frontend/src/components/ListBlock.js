@@ -1,28 +1,16 @@
 import { useState } from 'react';
-import { Card, Row, Col, Button, Form, Badge, InputGroup } from 'react-bootstrap';
+import { Card, Row, Col, Button, Form, Badge } from 'react-bootstrap';
 import ItemCard from './ItemCard';
 
 const COLUMNS = [
   { key: 'todo', label: 'To Do', variant: 'secondary' },
   { key: 'doing', label: 'Doing', variant: 'warning' },
+  { key: 'done', label: 'Done', variant: 'success' },
 ];
 
 /**
- * Renders a single list as a kanban block with two visible columns
- * (To Do, Doing). Done items are hidden from the UI (stored in DB).
- *
- * Props:
- *   list         – { id, name, rank }
- *   items        – top-level items for this list (with nested subitems)
- *   allLists     – all lists (for move-to-list in edit modal)
- *   isFirst/isLast – whether list is first/last in feed
- *   onRename     – (listId, newName) => void
- *   onDelete     – (listId) => void
- *   onMoveList   – (listId, direction) => void
- *   onUpdateItem – (itemId, data, listId) => result
- *   onDeleteItem – (itemId, listId) => void
- *   onMoveItem   – (itemId, direction, listId) => void
- *   onRefresh    – () => void
+ * Renders a single list as a kanban block with three columns
+ * (To Do, Doing, Done).
  */
 export default function ListBlock({
   list,
@@ -66,7 +54,7 @@ export default function ListBlock({
               size="sm"
               className="flex-grow-1"
             />
-            <Button type="submit" size="sm" variant="primary">
+            <Button type="submit" size="sm" variant="success">
               ✔
             </Button>
             <Button
@@ -128,8 +116,8 @@ export default function ListBlock({
           {COLUMNS.map((col) => {
             const colItems = itemsForColumn(col.key);
             return (
-              <Col key={col.key} md={6}>
-                <div className="p-2 rounded" style={{ background: '#f8f9fa', minHeight: 120 }}>
+              <Col key={col.key} md={4}>
+                <div className="p-2 rounded" style={{ background: '#f0eaff', minHeight: 120 }}>
                   <div className="mb-2 d-flex align-items-center gap-2">
                     <Badge bg={col.variant} className="fs-6 px-3 py-2">
                       {col.label}
@@ -159,13 +147,6 @@ export default function ListBlock({
             );
           })}
         </Row>
-
-        {/* Done count (items are hidden but we show a count) */}
-        {items.filter((i) => i.column === 'done').length > 0 && (
-          <p className="text-muted small mt-2 mb-0">
-            ✅ {items.filter((i) => i.column === 'done').length} completed task(s) hidden
-          </p>
-        )}
       </Card.Body>
     </Card>
   );

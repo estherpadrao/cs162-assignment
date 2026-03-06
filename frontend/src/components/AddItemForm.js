@@ -10,7 +10,7 @@ import {
 } from 'react-bootstrap';
 
 /**
- * Collapsible form for adding new items (or subitems) to any list.
+ * Collapsible form for adding new items (or sub-items) to any list.
  *
  * Props:
  *   lists        – all lists []
@@ -35,10 +35,12 @@ export default function AddItemForm({ lists, itemsByList, onAdd }) {
     setParentItemId('');
   }, [listId]);
 
-  // Top-level items available as parents for the selected list
-  const parentCandidates = listId
-    ? (itemsByList[Number(listId)] || []).filter((i) => i.parent_item_id === null)
-    : [];
+  // Flatten top-level items and their sub-items so users can pick any as parent
+  const topLevel = listId ? (itemsByList[Number(listId)] || []) : [];
+  const parentCandidates = topLevel.flatMap((i) => [
+    { ...i, _depth: 0 },
+    ...(i.subitems || []).map((s) => ({ ...s, _depth: 1 })),
+  ]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,10 +67,10 @@ export default function AddItemForm({ lists, itemsByList, onAdd }) {
       setDueDate('');
       setIsSubitem(false);
       setParentItemId('');
-      setSuccess('Task added!');
+      setSuccess('Item added!');
       setTimeout(() => setSuccess(''), 2000);
     } else {
-      setError(result.error || 'Failed to add task');
+      setError(result.error || 'Failed to add item');
     }
   };
 
@@ -79,7 +81,7 @@ export default function AddItemForm({ lists, itemsByList, onAdd }) {
         style={{ cursor: 'pointer' }}
         onClick={() => setOpen((o) => !o)}
       >
-        <span className="fw-semibold">➕ Add a Task</span>
+        <span className="fw-semibold">➕ Add an Item</span>
         <span>{open ? '▲' : '▼'}</span>
       </Card.Header>
 
@@ -97,7 +99,7 @@ export default function AddItemForm({ lists, itemsByList, onAdd }) {
                     <Form.Control
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Task title"
+                      placeholder="Item title"
                       required
                     />
                   </Form.Group>
@@ -148,7 +150,7 @@ export default function AddItemForm({ lists, itemsByList, onAdd }) {
                 <Col md={12}>
                   <Form.Check
                     type="checkbox"
-                    label="Add as a sub-task"
+                    label="Add as a sub-item"
                     checked={isSubitem}
                     onChange={(e) => setIsSubitem(e.target.checked)}
                     disabled={!listId || parentCandidates.length === 0}
@@ -158,7 +160,7 @@ export default function AddItemForm({ lists, itemsByList, onAdd }) {
                 {isSubitem && (
                   <Col md={6}>
                     <Form.Group>
-                      <Form.Label>Parent Task *</Form.Label>
+                      <Form.Label>Parent Item *</Form.Label>
                       <Form.Select
                         value={parentItemId}
                         onChange={(e) => setParentItemId(e.target.value)}
@@ -167,7 +169,7 @@ export default function AddItemForm({ lists, itemsByList, onAdd }) {
                         <option value="">— select parent —</option>
                         {parentCandidates.map((it) => (
                           <option key={it.id} value={it.id}>
-                            {it.title}
+                            {it._depth > 0 ? '↳ ' : ''}{it.title}
                           </option>
                         ))}
                       </Form.Select>
@@ -176,8 +178,8 @@ export default function AddItemForm({ lists, itemsByList, onAdd }) {
                 )}
 
                 <Col md={12}>
-                  <Button type="submit" variant="primary" disabled={saving}>
-                    {saving ? 'Adding…' : 'Add Task'}
+                  <Button type="submit" variant="success" disabled={saving}>
+                    {saving ? 'Adding…' : 'Add Item'}
                   </Button>
                 </Col>
               </Row>

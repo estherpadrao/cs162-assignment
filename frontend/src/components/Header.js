@@ -1,16 +1,22 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Navbar, Nav, Container, Button } from 'react-bootstrap';
 import { useUser } from '../UserContext';
 
 export default function Header() {
   const { user, api, setUser } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     await api.logout();
     setUser(null);
     navigate('/');
   };
+
+  const activeLinkStyle = (path) => ({
+    borderBottom: location.pathname === path ? '2px solid white' : '2px solid transparent',
+    paddingBottom: '2px',
+  });
 
   return (
     <Navbar expand="md" sticky="top" style={{ backgroundColor: '#6f42c1' }} variant="dark">
@@ -21,13 +27,17 @@ export default function Header() {
         <Navbar.Toggle />
         <Navbar.Collapse>
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/">Home</Nav.Link>
-            {user && <Nav.Link as={Link} to="/lists">My Lists</Nav.Link>}
+            <Nav.Link as={Link} to="/" style={activeLinkStyle('/')}>Home</Nav.Link>
+            {user && (
+              <Nav.Link as={Link} to="/lists" style={activeLinkStyle('/lists')}>My Lists</Nav.Link>
+            )}
           </Nav>
           <Nav>
             {user ? (
               <>
-                <Nav.Link as={Link} to="/profile">{user.username}</Nav.Link>
+                <Nav.Link as={Link} to="/profile" style={activeLinkStyle('/profile')}>
+                  {user.username}
+                </Nav.Link>
                 <Button
                   variant="outline-light"
                   size="sm"
@@ -39,8 +49,8 @@ export default function Header() {
               </>
             ) : (
               <>
-                <Nav.Link as={Link} to="/login">Sign In</Nav.Link>
-                <Nav.Link as={Link} to="/register">Register</Nav.Link>
+                <Nav.Link as={Link} to="/login" style={activeLinkStyle('/login')}>Sign In</Nav.Link>
+                <Nav.Link as={Link} to="/register" style={activeLinkStyle('/register')}>Register</Nav.Link>
               </>
             )}
           </Nav>

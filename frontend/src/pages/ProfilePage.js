@@ -16,7 +16,7 @@ export default function ProfilePage() {
     <Container className="mt-5" style={{ maxWidth: 500 }}>
       <Card className="shadow-sm">
         <Card.Body className="p-4">
-          <Card.Title className="mb-4 fs-3">My Profile</Card.Title>
+          <Card.Title className="mb-4 fs-3" style={{ color: '#6f42c1' }}>My Profile</Card.Title>
 
           <Row className="mb-3">
             <Col sm={4} className="fw-semibold text-muted">Username</Col>

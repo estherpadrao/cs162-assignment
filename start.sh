@@ -7,7 +7,7 @@ cd "$(dirname "$0")/backend"
 pip3 install -r ../requirements.txt
 
 echo "=== Starting Flask backend on http://localhost:5001 ==="
-python3 run.py &
+python3 app.py &
 FLASK_PID=$!
 
 echo "=== Installing Node dependencies ==="

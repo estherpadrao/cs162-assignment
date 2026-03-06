@@ -65,8 +65,8 @@ Then open http://localhost:3000.
 **Backend**
 ```bash
 cd backend
-pip install -r ../requirements.txt
-python run.py          # http://localhost:5000
+pip3 install -r ../requirements.txt
+python3 run.py          # http://localhost:5000
 ```
 
 **Frontend** (separate terminal)

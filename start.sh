@@ -4,10 +4,10 @@ set -e
 
 echo "=== Installing Python dependencies ==="
 cd "$(dirname "$0")/backend"
-pip install -r ../requirements.txt
+pip3 install -r ../requirements.txt
 
 echo "=== Starting Flask backend on http://localhost:5000 ==="
-python run.py &
+python3 run.py &
 FLASK_PID=$!
 
 echo "=== Installing Node dependencies ==="

@@ -7,6 +7,18 @@ Unit tests for authentication endpoints:
 
 
 class TestRegister:
+    """Tests for POST /api/register.
+
+    Covers successful registration, duplicate email rejection, and missing
+    required fields.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_register_success_returns_201_with_user_data(self, client):
         res = client.post('/api/register', json={
             'email': 'bob@example.com',
@@ -37,6 +49,17 @@ class TestRegister:
 
 
 class TestLogin:
+    """Tests for POST /api/tokens (login).
+
+    Covers correct credentials, wrong password, and unknown email.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_login_correct_credentials_returns_token(self, client, registered_user):
         res = client.post('/api/tokens', json={
             'email': registered_user['email'],
@@ -64,6 +87,18 @@ class TestLogin:
 
 
 class TestLogout:
+    """Tests for DELETE /api/tokens (logout).
+
+    Verifies that logging out invalidates the token and that an unauthenticated
+    logout attempt is rejected.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_logout_revokes_token(self, client, registered_user, auth_headers):
         # Logout
         res = client.delete('/api/tokens', headers=auth_headers)

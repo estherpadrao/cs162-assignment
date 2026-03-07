@@ -3,17 +3,22 @@ import { Card, Badge, Button, ButtonGroup } from 'react-bootstrap';
 import EditItemModal from './EditItemModal';
 
 /**
- * Renders a single item (or sub-item) card.
+ * Renders a single item (or sub-item) card with actions.
  *
- * Props:
- *   item          – the item object (with .subitems[])
- *   depth         – nesting depth (0 = top-level)
- *   allLists      – all lists (for move-to-list in edit modal)
- *   onUpdate      – async (itemId, data, listId) => result
- *   onDelete      – async (itemId, listId) => void
- *   onMoveItem    – async (itemId, direction, listId) => void  (rank swap)
- *   isFirst       – boolean
- *   isLast        – boolean
+ * For top-level items (depth === 0), left/right column-movement buttons are
+ * shown. Items with sub-items have a collapse/expand toggle. Clicking Edit
+ * opens the EditItemModal. Sub-items are rendered recursively with depth + 1.
+ *
+ * @param {object}   item       - The item to display (includes .subitems[]).
+ * @param {number}   [depth=0] - Nesting depth; 0 means top-level.
+ * @param {object[]} allLists   - All lists (passed to the edit modal for
+ *                                move-to-list support).
+ * @param {function} onUpdate   - async (itemId, data, listId) => result
+ * @param {function} onDelete   - async (itemId, listId) => void
+ * @param {function} onMoveItem - async (itemId, direction, listId) => void
+ * @param {boolean}  isFirst    - True if this is the first sibling in the column.
+ * @param {boolean}  isLast     - True if this is the last sibling in the column.
+ * @returns {JSX.Element}
  */
 export default function ItemCard({
   item,
@@ -31,16 +36,35 @@ export default function ItemCard({
   const hasSubitems = item.subitems && item.subitems.length > 0;
   const isDone = item.column === 'done';
 
+  /**
+   * Toggle the collapsed state of the item's sub-item list and persist
+   * the change to the server.
+   *
+   * @param {void}
+   * @returns {Promise<void>}
+   */
   const handleToggleCollapse = async () => {
     const next = !collapsed;
     setCollapsed(next);
     await onUpdate(item.id, { is_collapsed: next }, item.list_id);
   };
 
+  /**
+   * Move the item to a different kanban column.
+   *
+   * @param {string} newCol - The target column: 'todo', 'doing', or 'done'.
+   * @returns {Promise<void>}
+   */
   const handleMoveColumn = async (newCol) => {
     await onUpdate(item.id, { column: newCol }, item.list_id);
   };
 
+  /**
+   * Prompt for confirmation and delete the item (and its sub-items).
+   *
+   * @param {void}
+   * @returns {Promise<void>}
+   */
   const handleDelete = async () => {
     if (!window.confirm(`Delete "${item.title}"?`)) return;
     await onDelete(item.id, item.list_id);

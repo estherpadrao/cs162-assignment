@@ -15,6 +15,18 @@ import ListsPage from './pages/ListsPage';
 // One shared ApiClient instance (token persisted in localStorage)
 const api = new ApiClient();
 
+/**
+ * Root application component.
+ *
+ * On mount, attempts to restore a session using any token stored in
+ * localStorage. While the check is in progress the app renders nothing to
+ * avoid a flash of the wrong page. Once resolved, it provides the user
+ * state and shared ApiClient to all child components via UserContext, and
+ * sets up client-side routing with public and protected routes.
+ *
+ * @param {void}
+ * @returns {JSX.Element|null} The full app layout, or null while loading.
+ */
 export default function App() {
   // undefined = still loading, null = not authenticated, object = authenticated user
   const [user, setUser] = useState(undefined);

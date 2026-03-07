@@ -9,6 +9,15 @@ from app.api.errors import bad_request, error_response
 @bp.route('/lists', methods=['GET'])
 @token_auth_required
 def get_lists(current_user):
+    """Return all lists owned by the current user, sorted by rank.
+
+    Args:
+        current_user (User): The authenticated user, injected by
+                             @token_auth_required.
+
+    Returns:
+        flask.Response: 200 with a JSON array of list dicts.
+    """
     lists = (
         TodoList.query
         .filter_by(user_id=current_user.id)
@@ -21,6 +30,19 @@ def get_lists(current_user):
 @bp.route('/lists', methods=['POST'])
 @token_auth_required
 def create_list(current_user):
+    """Create a new list for the current user.
+
+    Expects an optional JSON body with 'name'. Defaults to 'New List' if
+    omitted or blank. The new list is appended at the end by receiving
+    the highest rank.
+
+    Args:
+        current_user (User): The authenticated user, injected by
+                             @token_auth_required.
+
+    Returns:
+        flask.Response: 201 with the new list dict on success.
+    """
     data = request.get_json() or {}
     name = data.get('name', 'New List').strip() or 'New List'
     max_rank = (
@@ -37,6 +59,19 @@ def create_list(current_user):
 @bp.route('/lists/<int:list_id>', methods=['PUT'])
 @token_auth_required
 def update_list(current_user, list_id):
+    """Rename a list the current user owns.
+
+    Expects a JSON body with 'name'. Ignores blank names (keeps the old one).
+
+    Args:
+        current_user (User): The authenticated user, injected by
+                             @token_auth_required.
+        list_id (int): The primary key of the list to rename.
+
+    Returns:
+        flask.Response: 200 with the updated list dict on success, or
+                        403/404 on ownership or not-found errors.
+    """
     todo_list = TodoList.query.get_or_404(list_id)
     if todo_list.user_id != current_user.id:
         return error_response(403)
@@ -50,6 +85,17 @@ def update_list(current_user, list_id):
 @bp.route('/lists/<int:list_id>', methods=['DELETE'])
 @token_auth_required
 def delete_list(current_user, list_id):
+    """Delete a list and all of its items (cascade handled by the DB).
+
+    Args:
+        current_user (User): The authenticated user, injected by
+                             @token_auth_required.
+        list_id (int): The primary key of the list to delete.
+
+    Returns:
+        flask.Response: 204 No Content on success, or 403/404 on
+                        ownership or not-found errors.
+    """
     todo_list = TodoList.query.get_or_404(list_id)
     if todo_list.user_id != current_user.id:
         return error_response(403)
@@ -61,7 +107,20 @@ def delete_list(current_user, list_id):
 @bp.route('/lists/<int:list_id>/move', methods=['POST'])
 @token_auth_required
 def move_list(current_user, list_id):
-    """Swap this list's rank with the neighbour above or below."""
+    """Swap this list's rank with the neighbour immediately above or below it.
+
+    Moving has no effect if the list is already at the boundary in the
+    requested direction.
+
+    Args:
+        current_user (User): The authenticated user, injected by
+                             @token_auth_required.
+        list_id (int): The primary key of the list to move.
+
+    Returns:
+        flask.Response: 200 with {'ok': True} on success, or 400/403/404
+                        on bad direction, ownership, or not-found errors.
+    """
     todo_list = TodoList.query.get_or_404(list_id)
     if todo_list.user_id != current_user.id:
         return error_response(403)
@@ -92,7 +151,20 @@ def move_list(current_user, list_id):
 @bp.route('/lists/<int:list_id>/items', methods=['GET'])
 @token_auth_required
 def get_list_items(current_user, list_id):
-    """Return all top-level items for a list, each with nested subitems."""
+    """Return all top-level items for a list, each with their nested sub-items.
+
+    Only items with no parent (parent_item_id is None) are returned at the
+    top level. Their sub-items are embedded recursively via Item.to_dict().
+
+    Args:
+        current_user (User): The authenticated user, injected by
+                             @token_auth_required.
+        list_id (int): The primary key of the list whose items to fetch.
+
+    Returns:
+        flask.Response: 200 with a JSON array of item dicts (with 'subitems'),
+                        or 403/404 on ownership or not-found errors.
+    """
     todo_list = TodoList.query.get_or_404(list_id)
     if todo_list.user_id != current_user.id:
         return error_response(403)

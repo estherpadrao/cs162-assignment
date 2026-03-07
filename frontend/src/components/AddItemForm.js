@@ -12,10 +12,16 @@ import {
 /**
  * Collapsible form for adding new items (or sub-items) to any list.
  *
- * Props:
- *   lists        – all lists []
- *   itemsByList  – { [listId]: Item[] }
- *   onAdd        – async (data) => { ok, error }
+ * Clicking the card header expands the form. When "Add as a sub-item" is
+ * checked, a parent selector appears populated with all top-level items and
+ * their direct children for the selected list.
+ *
+ * @param {object[]} lists       - All lists the user owns.
+ * @param {object}   itemsByList - Map of listId → top-level Item[] (with
+ *                                 nested subitems).
+ * @param {function} onAdd       - async (data) => { ok, error } — called with
+ *                                 the new item payload on form submit.
+ * @returns {JSX.Element}
  */
 export default function AddItemForm({ lists, itemsByList, onAdd }) {
   const [open, setOpen] = useState(false);
@@ -42,6 +48,14 @@ export default function AddItemForm({ lists, itemsByList, onAdd }) {
     ...(i.subitems || []).map((s) => ({ ...s, _depth: 1 })),
   ]);
 
+  /**
+   * Validate the form and call onAdd with the collected data.
+   *
+   * Resets the form fields on success and shows an inline error on failure.
+   *
+   * @param {React.FormEvent} e - The form submit event.
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');

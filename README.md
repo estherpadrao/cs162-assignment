@@ -14,6 +14,26 @@ Flask REST API (port 5001)
 SQLite (backend/todo.db)
 ```
 
+## Test Pipeline
+
+```
+pytest (34 tests, 3 modules)
+        │
+        │  conftest.py — app factory + shared fixtures
+        │    ├── client              (Flask test client)
+        │    ├── registered_user     (pre-created user account)
+        │    ├── auth_headers        (Bearer token header)
+        │    └── user_list           (pre-created list owned by user)
+        │
+        ├── test_auth.py   → POST /api/register, POST/DELETE /api/tokens
+        ├── test_lists.py  → CRUD + reorder + user isolation (403)
+        └── test_items.py  → create / nest / update / move / cascade delete
+        │
+        │  in-memory SQLite (no files written to disk)
+        ▼
+each test: create_all → run → drop_all   (fully isolated)
+```
+
 - **Frontend** — React SPA with React Router. Shares auth state via `UserContext`. API calls go through `ApiClient.js`, which attaches a Bearer token to every request.
 - **Backend** — Flask with four API modules: `auth`, `users`, `lists`, `items`. Token-based authentication; each token is stored per-user in the database.
 - **Database** — SQLite, three tables: `user`, `todo_list`, `item`. Items self-reference for sub-tasks.

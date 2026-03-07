@@ -2,10 +2,27 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
 import { useUser } from '../UserContext';
 
+/**
+ * User profile page — displays account information and a sign-out button.
+ *
+ * Shows the current user's username, email, and numeric ID. Clicking
+ * Sign Out calls the API to revoke the token, clears the user from context,
+ * and redirects to the home page.
+ *
+ * @param {void}
+ * @returns {JSX.Element}
+ */
 export default function ProfilePage() {
   const { user, api, setUser } = useUser();
   const navigate = useNavigate();
 
+  /**
+   * Revoke the current bearer token, clear the user from context, and
+   * redirect to the home page.
+   *
+   * @param {void}
+   * @returns {Promise<void>}
+   */
   const handleLogout = async () => {
     await api.logout();
     setUser(null);

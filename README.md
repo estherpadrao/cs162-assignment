@@ -34,10 +34,6 @@ pytest (34 tests, 3 modules)
 each test: create_all → run → drop_all   (fully isolated)
 ```
 
-- **Frontend** — React SPA with React Router. Shares auth state via `UserContext`. API calls go through `ApiClient.js`, which attaches a Bearer token to every request.
-- **Backend** — Flask with four API modules: `auth`, `users`, `lists`, `items`. Token-based authentication; each token is stored per-user in the database.
-- **Database** — SQLite, three tables: `user`, `todo_list`, `item`. Items self-reference for sub-tasks.
-
 ## Quick Start
 
 ### Option A — one script

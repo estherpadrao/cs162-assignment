@@ -6,7 +6,7 @@ A full-stack todo app with a **Flask** REST API backend and a **React** frontend
 
 ```
 Browser (React, port 3000)
-        │  /api/* requests (proxied)
+        │  /api/* requests 
         ▼
 Flask REST API (port 5001)
         │  SQLAlchemy ORM
@@ -30,8 +30,10 @@ bash start.sh
 **Terminal 1 — backend**
 ```bash
 cd backend
-pip3 install -r ../requirements.txt
-python3 app.py          # http://localhost:5001
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+python3 app.py      # http://localhost:5001
 ```
 
 **Terminal 2 — frontend**
@@ -89,10 +91,6 @@ Uses an **in-memory SQLite database** — no setup required, no files written. E
 | `tests/test_lists.py` | Creating lists, rank ordering, renaming, deleting (with cascade to items), user isolation (403 on other user's list), reordering |
 | `tests/test_items.py` | Top-level and nested sub-item creation, column/title/description updates, invalid column rejection, cascade delete when parent removed, nested serialization, rank-swap moves |
 
-**Expected output:**
-```
-34 passed in ~9s
-```
 
 ## API Overview
 

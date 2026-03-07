@@ -63,6 +63,8 @@ Then open http://localhost:3000.
 
 > `package.json` proxies all `/api/*` requests to `http://localhost:5001`, so the frontend and backend talk to each other automatically.
 
+## Web App [Demo](https://www.loom.com/share/c6e761c8fc3d42ddbb79786aab78e6bd)
+
 ## Project Structure
 
 ```

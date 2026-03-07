@@ -1,56 +1,22 @@
 # Hierarchical Todo App
 
-A full-stack todo application built with **Flask** (backend) and **React** (frontend).
+A full-stack todo app with a **Flask** REST API backend and a **React** frontend. Users can manage multiple lists of tasks, organize them in kanban columns (To Do / Doing / Done), and nest sub-tasks to arbitrary depth. All data is persisted per-user in a local SQLite database.
 
-## Features
-- Multiple user accounts (registration / login / logout)
-- Each user sees only their own data
-- Multiple named lists per user, reorderable with ↑↓ buttons
-- Items with title, description, due date
-- Three kanban columns per list: **To Do → Doing → Done** (done items hidden)
-- Nested sub-tasks (arbitrary depth) rendered inside parent cards
-- Collapse / expand a task to hide/show its sub-tasks
-- Move a top-level task to a different list via the Edit modal
-- All data persisted in a local SQLite database via SQLAlchemy
-
-## Project Structure
+## System Design
 
 ```
-cs162-assignment/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py      # Flask app factory
-│   │   ├── models.py        # SQLAlchemy models: User, TodoList, Item
-│   │   └── api/
-│   │       ├── __init__.py  # Blueprint
-│   │       ├── auth.py      # POST /api/tokens, DELETE /api/tokens, POST /api/register
-│   │       ├── users.py     # GET /api/me
-│   │       ├── lists.py     # CRUD + reorder for lists
-│   │       └── items.py     # CRUD + move for items
-│   ├── config.py
-│   └── run.py               # entry point — creates DB tables then starts Flask
-├── frontend/
-│   ├── public/index.html
-│   ├── src/
-│   │   ├── ApiClient.js     # fetch wrapper (token auth, per Miguel's tutorial pattern)
-│   │   ├── UserContext.js   # React context: { user, setUser, api }
-│   │   ├── App.js           # BrowserRouter + routes
-│   │   ├── pages/
-│   │   │   ├── HomePage.js
-│   │   │   ├── LoginPage.js
-│   │   │   ├── RegisterPage.js
-│   │   │   ├── ProfilePage.js
-│   │   │   └── ListsPage.js
-│   │   └── components/
-│   │       ├── Header.js
-│   │       ├── ListBlock.js     # kanban list card
-│   │       ├── ItemCard.js      # recursive item card
-│   │       ├── AddItemForm.js   # collapsible add-task form
-│   │       └── EditItemModal.js # edit task modal
-│   └── package.json
-├── requirements.txt
-└── start.sh
+Browser (React, port 3000)
+        │  /api/* requests (proxied)
+        ▼
+Flask REST API (port 5001)
+        │  SQLAlchemy ORM
+        ▼
+SQLite (backend/todo.db)
 ```
+
+- **Frontend** — React SPA with React Router. Shares auth state via `UserContext`. API calls go through `ApiClient.js`, which attaches a Bearer token to every request.
+- **Backend** — Flask with four API modules: `auth`, `users`, `lists`, `items`. Token-based authentication; each token is stored per-user in the database.
+- **Database** — SQLite, three tables: `user`, `todo_list`, `item`. Items self-reference for sub-tasks.
 
 ## Quick Start
 
@@ -58,33 +24,66 @@ cs162-assignment/
 ```bash
 bash start.sh
 ```
-Then open http://localhost:3000.
 
-### Option B — manual
+### Option B — manual (two terminals)
 
-**Backend**
+**Terminal 1 — backend**
 ```bash
 cd backend
 pip3 install -r ../requirements.txt
-python3 run.py          # http://localhost:5000
+python3 app.py          # http://localhost:5001
 ```
 
-**Frontend** (separate terminal)
+**Terminal 2 — frontend**
 ```bash
 cd frontend
 npm install
-npm start              # http://localhost:3000
+npm start               # http://localhost:3000
 ```
 
-The React dev-server proxies all `/api/*` requests to `http://localhost:5000` via the `"proxy"` field in `package.json`.
+Then open http://localhost:3000.
 
-## Authentication
+> `package.json` proxies all `/api/*` requests to `http://localhost:5001`, so the frontend and backend talk to each other automatically.
 
-Follows the token-based pattern from [Miguel Grinberg's React Mega-Tutorial](https://blog.miguelgrinberg.com/post/the-react-mega-tutorial-chapter-8-authentication):
-- `POST /api/tokens` → returns `{ token, user }`; token stored in `localStorage`
-- Every subsequent request carries `Authorization: Bearer <token>`
-- `DELETE /api/tokens` → revokes token (logout)
+## Project Structure
 
-## Database
+```
+cs162-assignment/
+├── backend/
+│   ├── app.py           # entry point — creates DB tables, starts Flask on :5001
+│   ├── config.py        # SECRET_KEY, DB URI
+│   └── app/
+│       ├── __init__.py  # Flask app factory, CORS, blueprint registration
+│       ├── models.py    # User, TodoList, Item (self-referencing for sub-tasks)
+│       └── api/
+│           ├── auth.py  # POST/DELETE /api/tokens, POST /api/register
+│           ├── users.py # GET /api/me
+│           ├── lists.py # CRUD + reorder for lists
+│           └── items.py # CRUD + move for items
+├── frontend/
+│   ├── src/
+│   │   ├── ApiClient.js     # fetch wrapper with token auth
+│   │   ├── UserContext.js   # React context: { user, setUser, api }
+│   │   ├── App.js           # routes
+│   │   ├── pages/           # HomePage, LoginPage, RegisterPage, ProfilePage, ListsPage
+│   │   └── components/      # Header, ListBlock, ItemCard, AddItemForm, EditItemModal
+│   └── package.json
+├── requirements.txt
+└── start.sh
+```
 
-SQLite file at `backend/todo.db` (created automatically on first run).
+## API Overview
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/register` | Create account |
+| POST | `/api/tokens` | Login → returns token |
+| DELETE | `/api/tokens` | Logout |
+| GET | `/api/me` | Current user info |
+| GET/POST | `/api/lists` | List all lists / create list |
+| PUT/DELETE | `/api/lists/<id>` | Rename / delete list |
+| POST | `/api/lists/<id>/move` | Reorder list |
+| GET | `/api/lists/<id>/items` | Items (with nested sub-tasks) |
+| POST | `/api/items` | Create item or sub-item |
+| PUT/DELETE | `/api/items/<id>` | Edit / delete item |
+| POST | `/api/items/<id>/move` | Move item up/down within column |

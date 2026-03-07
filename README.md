@@ -72,6 +72,28 @@ cs162-assignment/
 └── start.sh
 ```
 
+## Running the Tests
+
+```bash
+cd backend
+python -m pytest tests/ -v
+```
+
+Uses an **in-memory SQLite database** — no setup required, no files written. Each test gets a fresh, isolated database.
+
+**34 tests across 3 modules:**
+
+| File | What it tests |
+|---|---|
+| `tests/test_auth.py` | Registration (success, duplicate email, missing fields), login (correct/wrong credentials), token revocation |
+| `tests/test_lists.py` | Creating lists, rank ordering, renaming, deleting (with cascade to items), user isolation (403 on other user's list), reordering |
+| `tests/test_items.py` | Top-level and nested sub-item creation, column/title/description updates, invalid column rejection, cascade delete when parent removed, nested serialization, rank-swap moves |
+
+**Expected output:**
+```
+34 passed in ~9s
+```
+
 ## API Overview
 
 | Method | Path | Description |

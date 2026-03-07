@@ -54,14 +54,19 @@ cs162-assignment/
 ├── backend/
 │   ├── app.py           # entry point — creates DB tables, starts Flask on :5001
 │   ├── config.py        # SECRET_KEY, DB URI
-│   └── app/
-│       ├── __init__.py  # Flask app factory, CORS, blueprint registration
-│       ├── models.py    # User, TodoList, Item (self-referencing for sub-tasks)
-│       └── api/
-│           ├── auth.py  # POST/DELETE /api/tokens, POST /api/register
-│           ├── users.py # GET /api/me
-│           ├── lists.py # CRUD + reorder for lists
-│           └── items.py # CRUD + move for items
+│   ├── app/
+│   │   ├── __init__.py  # Flask app factory, CORS, blueprint registration
+│   │   ├── models.py    # User, TodoList, Item (self-referencing for sub-tasks)
+│   │   └── api/
+│   │       ├── auth.py  # POST/DELETE /api/tokens, POST /api/register
+│   │       ├── users.py # GET /api/me
+│   │       ├── lists.py # CRUD + reorder for lists
+│   │       └── items.py # CRUD + move for items
+│   └── tests/
+│       ├── conftest.py      # app factory, fixtures (client, auth_headers, user_list)
+│       ├── test_auth.py     # register, login, token revocation
+│       ├── test_lists.py    # CRUD, reorder, user isolation
+│       └── test_items.py    # create, nest, update, move, cascade delete
 ├── frontend/
 │   ├── src/
 │   │   ├── ApiClient.js     # fetch wrapper with token auth

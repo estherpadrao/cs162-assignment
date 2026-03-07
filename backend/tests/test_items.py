@@ -13,6 +13,18 @@ Unit tests for item endpoints:
 # ---------------------------------------------------------------------------
 
 def create_item(client, headers, list_id, title='Task', **kwargs):
+    """POST /api/items and return the response.
+
+    Args:
+        client: The Flask test client.
+        headers (dict): Authorization headers for the request.
+        list_id (int): The list to create the item in.
+        title (str): The item title. Defaults to 'Task'.
+        **kwargs: Any additional item fields (e.g. parent_item_id, description).
+
+    Returns:
+        flask.testing.FlaskClient response object.
+    """
     return client.post('/api/items', json={
         'list_id': list_id, 'title': title, **kwargs
     }, headers=headers)
@@ -23,6 +35,18 @@ def create_item(client, headers, list_id, title='Task', **kwargs):
 # ---------------------------------------------------------------------------
 
 class TestCreateItem:
+    """Tests for POST /api/items.
+
+    Covers top-level and sub-item creation, validation errors, and
+    cross-user ownership enforcement.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_create_top_level_item_returns_201(self, client, auth_headers, user_list):
         res = create_item(client, auth_headers, user_list['id'], title='Buy milk')
         assert res.status_code == 201
@@ -71,6 +95,18 @@ class TestCreateItem:
 # ---------------------------------------------------------------------------
 
 class TestUpdateItem:
+    """Tests for PUT /api/items/<id>.
+
+    Covers updating text fields, changing column, toggling is_collapsed, and
+    rejecting invalid column values.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_update_title_and_description(self, client, auth_headers, user_list):
         item = create_item(client, auth_headers, user_list['id']).get_json()
         res = client.put(f'/api/items/{item["id"]}', json={
@@ -105,6 +141,18 @@ class TestUpdateItem:
 # ---------------------------------------------------------------------------
 
 class TestDeleteItem:
+    """Tests for DELETE /api/items/<id>.
+
+    Verifies that deleting an item returns 204 and that sub-items are
+    removed along with their parent.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_delete_item_returns_204(self, client, auth_headers, user_list):
         item = create_item(client, auth_headers, user_list['id']).get_json()
         res = client.delete(f'/api/items/{item["id"]}', headers=auth_headers)
@@ -130,6 +178,18 @@ class TestDeleteItem:
 # ---------------------------------------------------------------------------
 
 class TestGetListItems:
+    """Tests for GET /api/lists/<id>/items.
+
+    Verifies that only top-level items are returned at the root level and
+    that sub-items appear nested inside their parent.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_items_include_nested_subitems(self, client, auth_headers, user_list):
         parent = create_item(client, auth_headers, user_list['id'], title='Parent').get_json()
         create_item(client, auth_headers, user_list['id'], title='Child 1', parent_item_id=parent['id'])
@@ -151,6 +211,18 @@ class TestGetListItems:
 # ---------------------------------------------------------------------------
 
 class TestMoveItem:
+    """Tests for POST /api/items/<id>/move.
+
+    Verifies that moving an item swaps its rank with the correct neighbour
+    and that invalid direction values are rejected.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_move_item_down_swaps_ranks(self, client, auth_headers, user_list):
         i1 = create_item(client, auth_headers, user_list['id'], title='First').get_json()
         i2 = create_item(client, auth_headers, user_list['id'], title='Second').get_json()

@@ -2,8 +2,20 @@ import { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert } from 'react-bootstrap';
 
 /**
- * Modal for editing an item's title, description, due date.
- * For top-level items it also allows moving to a different list.
+ * Modal dialog for editing an existing item's fields.
+ *
+ * Editable fields are title, description, and due date. For top-level items
+ * (parent_item_id === null) a list selector is shown so the item can be moved
+ * to a different list. The modal re-syncs its local state whenever the item
+ * prop changes.
+ *
+ * @param {object}   item    - The item being edited.
+ * @param {object[]} lists   - All lists (used to populate the move-to-list
+ *                             dropdown for top-level items).
+ * @param {function} onSave  - async (itemId, data, listId) => result — called
+ *                             with the updated fields on submit.
+ * @param {function} onClose - Called when the modal should be dismissed.
+ * @returns {JSX.Element}
  */
 export default function EditItemModal({ item, lists, onSave, onClose }) {
   const [title, setTitle] = useState(item.title);
@@ -13,6 +25,7 @@ export default function EditItemModal({ item, lists, onSave, onClose }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Re-sync form state when the item prop changes (e.g. after an external update)
   useEffect(() => {
     setTitle(item.title);
     setDescription(item.description || '');
@@ -20,6 +33,15 @@ export default function EditItemModal({ item, lists, onSave, onClose }) {
     setListId(item.list_id);
   }, [item]);
 
+  /**
+   * Validate and submit the edited item fields to onSave.
+   *
+   * Only includes list_id in the payload if the item is top-level and the
+   * list was actually changed. Closes the modal on success.
+   *
+   * @param {React.FormEvent} e - The form submit event.
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) {

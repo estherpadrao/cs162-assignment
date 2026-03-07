@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, Row, Col, Button, Form, Badge } from 'react-bootstrap';
 import ItemCard from './ItemCard';
 
+/** Column definitions for the kanban board. */
 const COLUMNS = [
   { key: 'todo', label: 'To Do', variant: 'secondary' },
   { key: 'doing', label: 'Doing', variant: 'warning' },
@@ -9,8 +10,24 @@ const COLUMNS = [
 ];
 
 /**
- * Renders a single list as a kanban block with three columns
- * (To Do, Doing, Done).
+ * Renders a single list as a kanban board with three columns (To Do, Doing, Done).
+ *
+ * The list header shows the name with an inline rename form, up/down move
+ * buttons, and a delete button. Each column contains the items whose
+ * 'column' field matches, sorted by rank.
+ *
+ * @param {object}   list         - The list object (id, name, rank).
+ * @param {object[]} items        - Top-level items for this list.
+ * @param {object[]} allLists     - All lists (passed through to ItemCard).
+ * @param {boolean}  isFirst      - True if this is the first list in the feed.
+ * @param {boolean}  isLast       - True if this is the last list in the feed.
+ * @param {function} onRename     - async (listId, newName) => void
+ * @param {function} onDelete     - async (listId) => void
+ * @param {function} onMoveList   - async (listId, direction) => void
+ * @param {function} onUpdateItem - async (itemId, data, listId) => result
+ * @param {function} onDeleteItem - async (itemId, listId) => void
+ * @param {function} onMoveItem   - async (itemId, direction, listId) => void
+ * @returns {JSX.Element}
  */
 export default function ListBlock({
   list,
@@ -28,6 +45,12 @@ export default function ListBlock({
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(list.name);
 
+  /**
+   * Submit the inline rename form and call onRename if the name is non-blank.
+   *
+   * @param {React.FormEvent} e - The form submit event.
+   * @returns {Promise<void>}
+   */
   const handleRenameSubmit = async (e) => {
     e.preventDefault();
     if (nameValue.trim()) {
@@ -36,6 +59,12 @@ export default function ListBlock({
     setEditingName(false);
   };
 
+  /**
+   * Return items belonging to the given column, sorted ascending by rank.
+   *
+   * @param {string} colKey - One of 'todo', 'doing', or 'done'.
+   * @returns {object[]} Filtered and sorted items.
+   */
   const itemsForColumn = (colKey) =>
     items
       .filter((i) => i.column === colKey)

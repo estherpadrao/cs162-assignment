@@ -4,6 +4,18 @@ import { useUser } from '../UserContext';
 import ListBlock from '../components/ListBlock';
 import AddItemForm from '../components/AddItemForm';
 
+/**
+ * Main application page — shows all of the user's lists as kanban boards.
+ *
+ * On mount, fetches all lists and their items in parallel. Exposes handler
+ * functions for every list and item action (create, rename, delete, move,
+ * update column/collapse). After any mutation that changes ordering or
+ * membership, the affected list(s) are re-fetched from the server to stay
+ * in sync.
+ *
+ * @param {void}
+ * @returns {JSX.Element}
+ */
 export default function ListsPage() {
   const { api } = useUser();
 
@@ -15,6 +27,12 @@ export default function ListsPage() {
 
   // ── data fetching ──────────────────────────────────────────────────────────
 
+  /**
+   * Fetch the current user's lists from the server and update state.
+   *
+   * @param {void}
+   * @returns {Promise<object[]>} The fetched list array (empty on error).
+   */
   const fetchLists = useCallback(async () => {
     const result = await api.getLists();
     if (result.ok) {
@@ -25,6 +43,12 @@ export default function ListsPage() {
     return [];
   }, [api]);
 
+  /**
+   * Fetch and store all top-level items (with sub-items) for a single list.
+   *
+   * @param {number} listId - The primary key of the list to fetch items for.
+   * @returns {Promise<void>}
+   */
   const fetchItemsForList = useCallback(
     async (listId) => {
       const result = await api.getListItems(listId);
@@ -35,6 +59,12 @@ export default function ListsPage() {
     [api]
   );
 
+  /**
+   * Fetch items for every list in the provided array in parallel.
+   *
+   * @param {object[]} loadedLists - The lists whose items should be fetched.
+   * @returns {Promise<void>}
+   */
   const fetchAllItems = useCallback(
     async (loadedLists) => {
       await Promise.all(loadedLists.map((l) => fetchItemsForList(l.id)));
@@ -53,6 +83,12 @@ export default function ListsPage() {
 
   // ── list actions ───────────────────────────────────────────────────────────
 
+  /**
+   * Create a new list with a default name and add it to state.
+   *
+   * @param {void}
+   * @returns {Promise<void>}
+   */
   const handleAddList = async () => {
     const result = await api.createList('New List');
     if (result.ok) {
@@ -61,6 +97,13 @@ export default function ListsPage() {
     }
   };
 
+  /**
+   * Rename a list and update its entry in state.
+   *
+   * @param {number} listId  - The primary key of the list to rename.
+   * @param {string} newName - The replacement name.
+   * @returns {Promise<void>}
+   */
   const handleRenameList = async (listId, newName) => {
     const result = await api.updateList(listId, { name: newName });
     if (result.ok) {
@@ -70,6 +113,12 @@ export default function ListsPage() {
     }
   };
 
+  /**
+   * Prompt for confirmation, delete a list, and remove it from state.
+   *
+   * @param {number} listId - The primary key of the list to delete.
+   * @returns {Promise<void>}
+   */
   const handleDeleteList = async (listId) => {
     if (!window.confirm('Delete this list and all its items?')) return;
     const result = await api.deleteList(listId);
@@ -83,6 +132,13 @@ export default function ListsPage() {
     }
   };
 
+  /**
+   * Move a list up or down and re-fetch the full list order from the server.
+   *
+   * @param {number} listId    - The primary key of the list to move.
+   * @param {string} direction - 'up' or 'down'.
+   * @returns {Promise<void>}
+   */
   const handleMoveList = async (listId, direction) => {
     const result = await api.moveList(listId, direction);
     if (result.ok) {
@@ -93,10 +149,22 @@ export default function ListsPage() {
 
   // ── item actions ───────────────────────────────────────────────────────────
 
+  /**
+   * Re-fetch items for a single list (used after mutations).
+   *
+   * @param {number} listId - The primary key of the list to refresh.
+   * @returns {Promise<void>}
+   */
   const refreshList = async (listId) => {
     await fetchItemsForList(listId);
   };
 
+  /**
+   * Create a new item and refresh its list.
+   *
+   * @param {object} data - Item payload (list_id, title, etc.).
+   * @returns {Promise<{ok: boolean, error?: string}>}
+   */
   const handleAddItem = async (data) => {
     const result = await api.createItem(data);
     if (result.ok) {
@@ -106,6 +174,14 @@ export default function ListsPage() {
     return { ok: false, error: result.error };
   };
 
+  /**
+   * Update an item's fields, refreshing both lists if the item moved between them.
+   *
+   * @param {number} itemId - The item's primary key.
+   * @param {object} data   - Fields to update.
+   * @param {number} listId - The item's current list (before any move).
+   * @returns {Promise<{ok: boolean, item?: object, error?: string}>}
+   */
   const handleUpdateItem = async (itemId, data, listId) => {
     const result = await api.updateItem(itemId, data);
     if (result.ok) {
@@ -120,6 +196,13 @@ export default function ListsPage() {
     return result;
   };
 
+  /**
+   * Delete an item and refresh its list.
+   *
+   * @param {number} itemId - The item's primary key.
+   * @param {number} listId - The list the item belongs to.
+   * @returns {Promise<void>}
+   */
   const handleDeleteItem = async (itemId, listId) => {
     const result = await api.deleteItem(itemId);
     if (result.ok) {
@@ -127,6 +210,14 @@ export default function ListsPage() {
     }
   };
 
+  /**
+   * Move an item up or down within its column and refresh the list.
+   *
+   * @param {number} itemId    - The item's primary key.
+   * @param {string} direction - 'up' or 'down'.
+   * @param {number} listId    - The list the item belongs to.
+   * @returns {Promise<void>}
+   */
   const handleMoveItem = async (itemId, direction, listId) => {
     await api.moveItem(itemId, direction);
     await fetchItemsForList(listId);

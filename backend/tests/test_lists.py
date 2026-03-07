@@ -9,6 +9,18 @@ Unit tests for todo-list CRUD endpoints:
 
 
 class TestGetLists:
+    """Tests for GET /api/lists.
+
+    Verifies that the endpoint returns only the current user's lists and
+    requires authentication.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_get_lists_returns_only_current_users_lists(self, client, auth_headers):
         # Create two lists for the authenticated user
         client.post('/api/lists', json={'name': 'Work'}, headers=auth_headers)
@@ -39,6 +51,18 @@ class TestGetLists:
 
 
 class TestCreateList:
+    """Tests for POST /api/lists.
+
+    Covers successful creation, incremental rank assignment, and the
+    default-name fallback for blank names.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_create_list_returns_201_with_data(self, client, auth_headers):
         res = client.post('/api/lists', json={'name': 'Shopping'}, headers=auth_headers)
         assert res.status_code == 201
@@ -59,6 +83,18 @@ class TestCreateList:
 
 
 class TestUpdateList:
+    """Tests for PUT /api/lists/<id>.
+
+    Verifies that renaming succeeds for the owner and is rejected for other
+    users.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_rename_list_returns_200(self, client, auth_headers, user_list):
         res = client.put(
             f'/api/lists/{user_list["id"]}',
@@ -86,6 +122,18 @@ class TestUpdateList:
 
 
 class TestDeleteList:
+    """Tests for DELETE /api/lists/<id>.
+
+    Verifies 204 response, removal from the lists endpoint, and cascade
+    deletion of items.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_delete_list_returns_204(self, client, auth_headers, user_list):
         res = client.delete(f'/api/lists/{user_list["id"]}', headers=auth_headers)
         assert res.status_code == 204
@@ -112,6 +160,18 @@ class TestDeleteList:
 
 
 class TestMoveList:
+    """Tests for POST /api/lists/<id>/move.
+
+    Verifies that moving a list swaps ranks correctly and that invalid
+    direction values are rejected.
+
+    Args:
+        N/A — test methods receive pytest fixtures via dependency injection.
+
+    Returns:
+        N/A — assertions raise on failure.
+    """
+
     def test_move_list_down_swaps_ranks(self, client, auth_headers):
         l1 = client.post('/api/lists', json={'name': 'First'}, headers=auth_headers).get_json()
         l2 = client.post('/api/lists', json={'name': 'Second'}, headers=auth_headers).get_json()

@@ -7,7 +7,16 @@ from app.api.errors import bad_request, error_response
 
 
 def _owned_list(list_id, user_id):
-    """Return the list if it belongs to user_id, else None."""
+    """Return a TodoList only if it belongs to the given user.
+
+    Args:
+        list_id (int): The primary key of the list to look up.
+        user_id (int): The primary key of the authenticated user.
+
+    Returns:
+        TodoList | None: The list if it exists and belongs to user_id,
+                         otherwise None.
+    """
     todo_list = TodoList.query.get(list_id)
     if todo_list is None or todo_list.user_id != user_id:
         return None
@@ -17,6 +26,20 @@ def _owned_list(list_id, user_id):
 @bp.route('/items', methods=['POST'])
 @token_auth_required
 def create_item(current_user):
+    """Create a new item (or sub-item) inside a list the user owns.
+
+    Expects a JSON body with at least 'list_id' and 'title'. Optionally
+    accepts 'description', 'due_date', and 'parent_item_id'. The new item
+    is appended at the end of the sibling list by receiving the highest rank.
+
+    Args:
+        current_user (User): The authenticated user, injected by
+                             @token_auth_required.
+
+    Returns:
+        flask.Response: 201 with the new item dict on success, or 400/403
+                        on validation or ownership errors.
+    """
     data = request.get_json() or {}
     list_id = data.get('list_id')
     if not list_id:
@@ -59,6 +82,21 @@ def create_item(current_user):
 @bp.route('/items/<int:item_id>', methods=['PUT'])
 @token_auth_required
 def update_item(current_user, item_id):
+    """Update one or more fields of an existing item.
+
+    Accepted fields: 'title', 'description', 'due_date', 'column',
+    'is_collapsed', and 'list_id' (moves the item to another list; only
+    allowed for top-level items). Unknown fields are silently ignored.
+
+    Args:
+        current_user (User): The authenticated user, injected by
+                             @token_auth_required.
+        item_id (int): The primary key of the item to update.
+
+    Returns:
+        flask.Response: 200 with the updated item dict on success, or
+                        400/403/404 on validation or ownership errors.
+    """
     item = Item.query.get_or_404(item_id)
     if _owned_list(item.list_id, current_user.id) is None:
         return error_response(403)
@@ -93,7 +131,18 @@ def update_item(current_user, item_id):
 
 
 def _move_subtree(item, new_list_id):
-    """Recursively move an item and all its subitems to new_list_id."""
+    """Recursively move an item and all of its sub-items to a different list.
+
+    Called when a top-level item is moved between lists so that its entire
+    descendant tree moves with it.
+
+    Args:
+        item (Item): The item (and root of the subtree) to move.
+        new_list_id (int): The primary key of the destination list.
+
+    Returns:
+        None
+    """
     item.list_id = new_list_id
     for sub in item.subitems.all():
         _move_subtree(sub, new_list_id)
@@ -102,6 +151,17 @@ def _move_subtree(item, new_list_id):
 @bp.route('/items/<int:item_id>', methods=['DELETE'])
 @token_auth_required
 def delete_item(current_user, item_id):
+    """Delete an item and all of its sub-items (cascade handled by the DB).
+
+    Args:
+        current_user (User): The authenticated user, injected by
+                             @token_auth_required.
+        item_id (int): The primary key of the item to delete.
+
+    Returns:
+        flask.Response: 204 No Content on success, or 403/404 on
+                        ownership or not-found errors.
+    """
     item = Item.query.get_or_404(item_id)
     if _owned_list(item.list_id, current_user.id) is None:
         return error_response(403)
@@ -113,7 +173,21 @@ def delete_item(current_user, item_id):
 @bp.route('/items/<int:item_id>/move', methods=['POST'])
 @token_auth_required
 def move_item(current_user, item_id):
-    """Move an item up or down within its current column (rank swap)."""
+    """Swap an item's rank with the sibling immediately above or below it.
+
+    Siblings are items in the same list, column, and at the same nesting
+    level (same parent_item_id). Moving has no effect if the item is
+    already at the boundary in the requested direction.
+
+    Args:
+        current_user (User): The authenticated user, injected by
+                             @token_auth_required.
+        item_id (int): The primary key of the item to move.
+
+    Returns:
+        flask.Response: 200 with {'ok': True} on success, or 400/403/404
+                        on bad direction, ownership, or not-found errors.
+    """
     item = Item.query.get_or_404(item_id)
     if _owned_list(item.list_id, current_user.id) is None:
         return error_response(403)

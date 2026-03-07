@@ -2,6 +2,16 @@ import { Link } from 'react-router-dom';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { useUser } from '../UserContext';
 
+/**
+ * Public landing page shown at the root route ('/').
+ *
+ * Displays a hero message and call-to-action buttons. Authenticated users see
+ * a single "Go to My Lists" button; unauthenticated users see Log In and
+ * Register buttons.
+ *
+ * @param {void}
+ * @returns {JSX.Element}
+ */
 export default function HomePage() {
   const { user } = useUser();
 

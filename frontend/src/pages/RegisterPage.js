@@ -3,6 +3,16 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useUser } from '../UserContext';
 
+/**
+ * Registration page — renders a form for creating a new account.
+ *
+ * Validates that both password fields match before calling the API. On
+ * success, redirects to /login so the user can sign in with their new
+ * credentials. Displays an inline error alert on failure.
+ *
+ * @param {void}
+ * @returns {JSX.Element}
+ */
 export default function RegisterPage() {
   const { api } = useUser();
   const navigate = useNavigate();
@@ -14,6 +24,12 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Validate passwords match, call the registration API, and handle the result.
+   *
+   * @param {React.FormEvent} e - The form submit event.
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');

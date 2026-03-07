@@ -3,6 +3,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useUser } from '../UserContext';
 
+/**
+ * Login page — renders an email/password form.
+ *
+ * On successful login, stores the user in context and navigates to /lists.
+ * Displays an inline error alert on failure.
+ *
+ * @param {void}
+ * @returns {JSX.Element}
+ */
 export default function LoginPage() {
   const { api, setUser } = useUser();
   const navigate = useNavigate();
@@ -12,6 +21,12 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Submit the login form, call the API, and handle the result.
+   *
+   * @param {React.FormEvent} e - The form submit event.
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
